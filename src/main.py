@@ -12,8 +12,8 @@ from .config import APIType, Settings
 from .resources import ClientsResource, DevicesResource, NetworksResource, SitesResource
 from .resources import site_manager as site_manager_resource
 from .tool_registry import register_module_tools
-from .tools import acls as acls_tools
 from .tools import ace_stat as ace_stat_tools
+from .tools import acls as acls_tools
 from .tools import application as application_tools
 from .tools import backups as backups_tools
 from .tools import client_management as client_mgmt_tools
