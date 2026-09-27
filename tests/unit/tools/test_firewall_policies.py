@@ -1337,6 +1337,46 @@ class TestCreateFirewallPolicy:
             call_args = mock_client.post.call_args
             request_body = call_args[1]["json_data"]
             assert request_body["action"] == "ALLOW"
+            # create_allow_respond must default to False — the API rejects it
+            # on user-created policies (FirewallPolicyCreateRespondTrafficPolicyNotAllowed).
+            assert request_body["create_allow_respond"] is False
+
+    @pytest.mark.asyncio
+    async def test_create_firewall_policy_defaults_allow_respond_false(
+        self, local_settings: Settings
+    ) -> None:
+        """Test that create_allow_respond defaults to False for both actions."""
+        from src.tools.firewall_policies import create_firewall_policy
+
+        for action in ("ALLOW", "BLOCK"):
+            with patch("src.tools.firewall_policies.UniFiClient") as MockClient:
+                mock_client = AsyncMock()
+                MockClient.return_value.__aenter__.return_value = mock_client
+                mock_client.is_authenticated = True
+                mock_client.post.return_value = {
+                    "_id": "x",
+                    "name": f"Default {action}",
+                    "action": action,
+                    "predefined": False,
+                    "index": 10000,
+                    "protocol": "all",
+                    "ip_version": "BOTH",
+                    "source": {"zone_id": "z1", "matching_target": "ANY"},
+                    "destination": {"zone_id": "z2", "matching_target": "ANY"},
+                }
+
+                await create_firewall_policy(
+                    name=f"Default {action}",
+                    action=action,
+                    site_id="default",
+                    settings=local_settings,
+                    confirm=True,
+                )
+
+                body = mock_client.post.call_args[1]["json_data"]
+                assert (
+                    body["create_allow_respond"] is False
+                ), f"create_allow_respond should default to False for {action}"
 
     @pytest.mark.asyncio
     async def test_create_firewall_policy_authenticates_if_needed(

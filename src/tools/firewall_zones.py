@@ -60,11 +60,19 @@ async def _resolve_network_uuid(
 
 
 def _ensure_local_api(settings: Settings) -> None:
-    """Ensure the UniFi controller is accessed via the local API for ZBF operations."""
+    """Ensure the UniFi controller is accessed via the local (UniFi OS) API.
+
+    The ZBF zones on this module live on the UniFi **integration** API
+    (``/integration/v1/sites/{site}/firewall/zones``), which the self-hosted
+    Network Server does not serve — only UniFi OS gateways (local) do. Use
+    ``list_firewall_zones_v2`` for self-hosted controllers.
+    """
     if settings.api_type != APIType.LOCAL:
         raise ValidationError(
-            "Zone-Based Firewall endpoints are only available when UNIFI_API_TYPE='local'. "
-            "Please configure a local UniFi gateway connection to use these tools."
+            "Zone-Based Firewall integration endpoints are only available when "
+            "UNIFI_API_TYPE='local' (UniFi OS gateway). Self-hosted (legacy) "
+            "controllers should use list_firewall_zones_v2, which reads the "
+            "v2 /firewall/zone endpoint."
         )
 
 

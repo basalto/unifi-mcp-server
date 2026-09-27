@@ -525,6 +525,9 @@ async def create_firewall_policy(
         enabled: Whether policy is active
         description: Optional description
         ip_version: IPV4, IPV6, or BOTH (required by API; defaults to BOTH)
+        create_allow_respond: Auto-allow response traffic. Only valid on
+            predefined system rules — the API rejects it on user-created
+            policies, so this defaults to False. Leave unset (None).
         confirm: REQUIRED True for mutating operations
         dry_run: Preview changes without applying
 
@@ -621,11 +624,13 @@ async def create_firewall_policy(
             # `ip_version`; the API 400s (with an obfuscated Spring error)
             # if either is omitted. Default to an always-on rule.
             #
-            # create_allow_respond must be False for BLOCK rules — the API
-            # rejects BLOCK + respond-traffic enabled. Auto-set when the
-            # caller doesn't specify.
+            # create_allow_respond (auto-allow response traffic) is only valid
+            # on predefined system rules — the API rejects it on user-created
+            # policies with error FirewallPolicyCreateRespondTrafficPolicyNotAllowed,
+            # regardless of action. Default to False unless the caller
+            # explicitly sets it.
             if create_allow_respond is None:
-                resolved_allow_respond = action_upper != "BLOCK"
+                resolved_allow_respond = False
             else:
                 resolved_allow_respond = create_allow_respond
 
