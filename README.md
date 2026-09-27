@@ -796,6 +796,10 @@ After installing from PyPI (`pip install unifi-mcp-server`):
 
 - `UNIFI_API_KEY` (required): Your UniFi API key from unifi.ui.com
 - `UNIFI_API_TYPE` (required): `local`, `cloud-v1`, or `cloud-ea`
+- `MCP_AUTH_TOKEN` (optional, recommended): Bearer token required to call the
+  server over HTTP transports. When set, clients must send
+  `Authorization: Bearer <token>`. Applies to `streamable-http`, `http`, and
+  `sse` transports; ignored for stdio.
 - **For Local Gateway API**:
   - `UNIFI_LOCAL_HOST`: Gateway IP (e.g., 192.168.2.1)
   - `UNIFI_LOCAL_PORT`: Gateway port (default: 443)

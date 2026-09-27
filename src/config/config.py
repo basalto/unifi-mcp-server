@@ -106,6 +106,17 @@ class Settings(BaseSettings):
         validation_alias="UNIFI_DEFAULT_SITE",
     )
 
+    # MCP Server Authentication
+    mcp_auth_token: str | None = Field(
+        default=None,
+        description=(
+            "Optional bearer token required to call the MCP server. "
+            "When set, clients must send 'Authorization: Bearer <token>'. "
+            "When unset, no authentication is enforced."
+        ),
+        validation_alias="MCP_AUTH_TOKEN",
+    )
+
     # Site Manager API Configuration
     site_manager_enabled: bool = Field(
         default=False,

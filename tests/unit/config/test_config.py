@@ -448,3 +448,25 @@ class TestSettingsDefaults:
         monkeypatch.setenv("UNIFI_API_KEY", "test-key")
         settings = Settings()
         assert settings.audit_log_enabled is True
+
+
+class TestSettingsMCPAuthToken:
+    """Tests for the MCP_AUTH_TOKEN setting."""
+
+    def test_default_is_none(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("UNIFI_API_KEY", "test-key")
+        monkeypatch.delenv("MCP_AUTH_TOKEN", raising=False)
+        settings = Settings()
+        assert settings.mcp_auth_token is None
+
+    def test_token_from_env(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("UNIFI_API_KEY", "test-key")
+        monkeypatch.setenv("MCP_AUTH_TOKEN", "sekrit")
+        settings = Settings()
+        assert settings.mcp_auth_token == "sekrit"
+
+    def test_empty_token_is_none(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("UNIFI_API_KEY", "test-key")
+        monkeypatch.setenv("MCP_AUTH_TOKEN", "")
+        settings = Settings()
+        assert settings.mcp_auth_token == ""

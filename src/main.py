@@ -7,6 +7,7 @@ from typing import Any, Literal, cast
 
 from fastmcp import FastMCP
 
+from .auth import StaticTokenAuth
 from .config import APIType, Settings
 from .resources import ClientsResource, DevicesResource, NetworksResource, SitesResource
 from .resources import site_manager as site_manager_resource
@@ -55,7 +56,13 @@ from .utils import get_logger
 settings = Settings()
 logger = get_logger(__name__, settings.log_level)
 
-mcp = FastMCP("UniFi MCP Server")
+_auth_provider = StaticTokenAuth(settings.mcp_auth_token) if settings.mcp_auth_token else None
+if _auth_provider is not None:
+    logger.info("MCP bearer-token authentication enabled")
+else:
+    logger.warning("MCP auth is DISABLED (MCP_AUTH_TOKEN not set) - server is unauthenticated")
+
+mcp = FastMCP("UniFi MCP Server", auth=_auth_provider)
 
 # ---------------------------------------------------------------------------
 # Optional: agnost tracking

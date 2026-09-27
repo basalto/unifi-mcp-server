@@ -366,6 +366,8 @@ CMD ["python", "src/main.py"]
 ### Current Security Features
 
 - **API Key Authentication:** Stateless authentication via official UniFi Cloud API
+- **MCP Bearer-Token Authentication:** Optional `MCP_AUTH_TOKEN` environment variable
+  requires clients to send `Authorization: Bearer <token>` on every request (streamable-http/http/sse transports)
 - **Environment-based Configuration:** API keys stored in environment variables, not in code
 - **Secret Masking:** Pydantic SecretStr automatically masks sensitive values
 - **Type Safety:** Pydantic models enforce data validation
