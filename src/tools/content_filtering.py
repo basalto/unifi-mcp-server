@@ -1,7 +1,9 @@
-"""Content filtering (CyberSecure) management tools (local v2 API).
+"""Content filtering (CyberSecure) management tools (v2 API).
 
 Manages UniFi's DNS-based content filtering profiles via the v2 endpoint
-``/proxy/network/v2/api/site/{site}/content-filtering``. Each profile
+``content-filtering`` (served at ``/v2/api/site/{site}/content-filtering`` on
+self-hosted controllers and ``/proxy/network/v2/api/site/{site}/content-filtering``
+on UniFi OS gateways). Each profile
 blocks a set of category names (from a fixed list the API provides) and
 can be scoped to specific VLANs (``network_ids``) or client MACs.
 

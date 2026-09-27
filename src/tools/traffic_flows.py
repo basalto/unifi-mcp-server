@@ -1,15 +1,18 @@
-"""Traffic flow monitoring tools (local v2 API).
+"""Traffic flow monitoring tools (v2 API).
 
 The UniFi Integration API (``/proxy/network/integration/v1/...``) does **not**
 expose traffic flow data on any documented endpoint or firmware. Flow data is
-only available via the local private v2 endpoint
-``POST /proxy/network/v2/api/site/{site_id}/traffic-flows``, which is the
+only available via the private v2 endpoint ``traffic-flows``, which is the
 endpoint the UniFi Network web UI uses internally. It returns up to 50 of the
 most recently-completed flows with full source/destination metadata, matched
 firewall policies, byte counters, and risk classification.
 
-Key constraints of the v2 endpoint, verified live against a UDM Pro running
-UniFi Network 10.2.x:
+The endpoint is served at two base paths depending on the controller:
+
+* Self-hosted Network Server (legacy): ``POST /v2/api/site/{site_id}/traffic-flows``
+* UniFi OS gateway (local): ``POST /proxy/network/v2/api/site/{site_id}/traffic-flows``
+
+Key constraints of the v2 endpoint, verified live:
 
 * Hard cap at 50 flows per call; ``limit`` / ``offset`` / ``page_size`` /
   ``duration`` / ``start`` parameters are accepted but ignored.
@@ -20,9 +23,10 @@ UniFi Network 10.2.x:
   validation but do not actually narrow the result set. All filtering must
   therefore be performed client-side after fetching the sample.
 
-Because this endpoint is only reachable via the local gateway proxy, every
-function in this module calls :func:`_ensure_local_api` and raises
-``NotImplementedError`` when the MCP is configured for cloud-only API access.
+Because this endpoint is only reachable against a directly-accessible controller
+(local gateway or self-hosted), every function in this module calls
+:func:`_ensure_local_api` and raises ``NotImplementedError`` when the MCP is
+configured for cloud-only API access.
 """
 
 from __future__ import annotations

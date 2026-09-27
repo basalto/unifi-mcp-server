@@ -3,11 +3,13 @@
 Firewall groups are the reusable match objects that zone-based firewall
 policies and legacy firewall rules reference for ports and IP addresses.
 They live at the classic V1 internal endpoint
-``/proxy/network/api/s/{site}/rest/firewallgroup``, which the UniFi v2
-API does not replicate — so this module is **local-gateway only**. The
-API key on current UDM firmware authenticates against this legacy surface
-just like it does for the v2 firewall-policies endpoint, so no session
-login is required.
+``rest/firewallgroup`` (served at ``/api/s/{site}/rest/firewallgroup`` on
+self-hosted controllers and ``/proxy/network/api/s/{site}/rest/firewallgroup``
+on UniFi OS gateways), which the UniFi v2
+API does not replicate — so this module works only against a
+directly-reachable controller. The API key on current UDM firmware
+authenticates against this legacy surface just like it does for the v2
+firewall-policies endpoint, so no session login is required.
 
 Three group types exist:
 

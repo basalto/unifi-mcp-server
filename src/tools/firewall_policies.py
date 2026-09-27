@@ -346,7 +346,7 @@ async def list_firewall_policies(
     """List all firewall policies (Traffic & Firewall Rules) for a site.
 
     This tool fetches firewall policies from the UniFi v2 API endpoint.
-    Only available with local gateway API (api_type="local").
+    Available on local gateways (UniFi OS) and self-hosted controllers (legacy).
 
     Args:
         site_id: Site identifier (default: "default")
@@ -356,12 +356,12 @@ async def list_firewall_policies(
         List of firewall policy objects
 
     Raises:
-        NotImplementedError: When using cloud API (v2 endpoints require local access)
+        NotImplementedError: When using cloud API (v2 endpoints require direct access)
         APIError: When API request fails
 
     Note:
-        Cloud API does not support v2 endpoints. Configure UNIFI_API_TYPE=local
-        and UNIFI_LOCAL_HOST to use this tool.
+        Cloud API does not expose v2 endpoints. Configure UNIFI_API_TYPE=local
+        (gateway) or legacy (self-hosted controller) to use this tool.
     """
     _ensure_local_api(settings)
 
@@ -398,13 +398,13 @@ async def get_firewall_policy(
         Firewall policy object
 
     Raises:
-        NotImplementedError: When using cloud API (v2 endpoints require local access)
+        NotImplementedError: When using cloud API (v2 endpoints require direct access)
         ResourceNotFoundError: If policy not found
         APIError: When API request fails
 
     Note:
-        Cloud API does not support v2 endpoints. Configure UNIFI_API_TYPE=local
-        and UNIFI_LOCAL_HOST to use this tool.
+        Cloud API does not expose v2 endpoints. Configure UNIFI_API_TYPE=local
+        (gateway) or legacy (self-hosted controller) to use this tool.
 
     Example:
         >>> policy = await get_firewall_policy(
@@ -476,7 +476,7 @@ async def create_firewall_policy(
 ) -> dict[str, Any]:
     """Create a new firewall policy (Traffic & Firewall Rule).
 
-    Only available with local gateway API (api_type="local").
+    Available on local gateways (UniFi OS) and self-hosted controllers (legacy).
     Requires confirm=True to execute. Use dry_run=True to preview.
 
     Args:
@@ -771,7 +771,7 @@ async def update_firewall_policy(
         Updated policy object
 
     Raises:
-        NotImplementedError: When using cloud API (v2 endpoints require local access)
+        NotImplementedError: When using cloud API (v2 endpoints require direct access)
         ValueError: If confirmation not provided or an invalid value is supplied
         ResourceNotFoundError: If policy not found
     """
@@ -982,7 +982,7 @@ async def delete_firewall_policy(
         Confirmation of deletion
 
     Raises:
-        NotImplementedError: When using cloud API (v2 endpoints require local access)
+        NotImplementedError: When using cloud API (v2 endpoints require direct access)
         ValueError: If confirmation not provided or attempting to delete predefined rule
         ResourceNotFoundError: If policy not found
     """

@@ -1,13 +1,13 @@
-"""DHCP reservation management tools (local V1 legacy endpoint).
+"""DHCP reservation management tools (legacy V1 endpoint).
 
 Creates and manages fixed-IP DHCP reservations via the UniFi controller's
 ``/rest/user`` endpoint. Each "user" in the UniFi controller represents a
 known client identified by MAC address; DHCP reservations are just users
 with ``use_fixedip=true`` and a ``fixed_ip`` + ``network_id`` set.
 
-The endpoint is on the legacy V1 internal API
-(``/proxy/network/api/s/{site}/rest/user``), which accepts API-key auth
-on current UDM firmware. Local-gateway only — same gating as
+The endpoint is on the legacy V1 internal API (``/api/s/{site}/rest/user``
+on self-hosted controllers, ``/proxy/network/api/s/{site}/rest/user`` on
+UniFi OS gateways). Direct controller access only — same gating as
 firewall_groups / firewall_policies.
 """
 

@@ -3,8 +3,10 @@
 Firewall groups on UniFi are the reusable objects that firewall policies
 and legacy firewall rules reference for ports, IPv4 addresses, and IPv6
 addresses. They live at the legacy V1 internal API endpoint
-``/proxy/network/api/s/{site}/rest/firewallgroup`` — the v2 API does not
-expose them, so these tools are local-gateway only.
+``rest/firewallgroup`` (``/api/s/{site}/rest/firewallgroup`` on self-hosted,
+``/proxy/network/api/s/{site}/rest/firewallgroup`` on UniFi OS) — the v2 API
+does not expose them, so these tools work only against a directly-reachable
+controller (local gateway or self-hosted).
 """
 
 from typing import Literal
