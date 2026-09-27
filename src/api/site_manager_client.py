@@ -26,9 +26,14 @@ class SiteManagerClient:
         base_url = "https://api.ui.com/v1/"
 
         # Initialize HTTP client
+        # Site Manager is a cloud API and always requires the API key, regardless
+        # of the api_type used for the controller (legacy vs cloud).
+        headers = settings.get_headers()
+        if settings.api_key:
+            headers["X-API-KEY"] = settings.api_key
         self.client = httpx.AsyncClient(
             base_url=base_url,
-            headers=settings.get_headers(),
+            headers=headers,
             timeout=settings.request_timeout,
             verify=True,  # Always verify SSL for Site Manager API
         )
