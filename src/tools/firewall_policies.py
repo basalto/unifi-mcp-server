@@ -478,6 +478,8 @@ async def create_firewall_policy(
 
     Available on local gateways (UniFi OS) and self-hosted controllers (legacy).
     Requires confirm=True to execute. Use dry_run=True to preview.
+    ``create_allow_respond`` (auto-allow response traffic) is predefined-rules-only;
+    it defaults to False and the API rejects True on user-created policies.
 
     Args:
         name: Policy name
