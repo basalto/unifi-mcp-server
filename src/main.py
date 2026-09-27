@@ -13,6 +13,7 @@ from .resources import ClientsResource, DevicesResource, NetworksResource, Sites
 from .resources import site_manager as site_manager_resource
 from .tool_registry import register_module_tools
 from .tools import acls as acls_tools
+from .tools import ace_stat as ace_stat_tools
 from .tools import application as application_tools
 from .tools import backups as backups_tools
 from .tools import client_management as client_mgmt_tools
@@ -114,6 +115,7 @@ _CLOUD_TOOL_MODULES = [
 
 _LOCAL_TOOL_MODULES = [
     acls_tools,
+    ace_stat_tools,
     application_tools,
     backups_tools,
     client_mgmt_tools,

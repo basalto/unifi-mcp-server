@@ -124,6 +124,17 @@ class Settings(BaseSettings):
         validation_alias="UNIFI_SITE_MANAGER_ENABLED",
     )
 
+    # ace_stat analytics bridge (read-only sidecar on the controller)
+    ace_stat_url: str | None = Field(
+        default=None,
+        description=(
+            "Base URL of the ace-stat-api sidecar exposing controller ace_stat "
+            "MongoDB analytics (e.g. http://192.168.1.101:8787). When unset, "
+            "ace_stat tools report the sidecar as unavailable."
+        ),
+        validation_alias="ACE_STAT_URL",
+    )
+
     # Rate Limiting Configuration
     rate_limit_requests: int = Field(
         default=100,
