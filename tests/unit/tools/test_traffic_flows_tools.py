@@ -209,8 +209,24 @@ def _mock_client(raw_flows: list[dict[str, Any]]) -> AsyncMock:
 class TestLocalApiGate:
     @pytest.mark.asyncio
     async def test_cloud_mode_raises(self, cloud_settings: MagicMock) -> None:
-        with pytest.raises(NotImplementedError, match="UNIFI_API_TYPE='local'"):
+        with pytest.raises(NotImplementedError, match="UNIFI_API_TYPE='local' or 'legacy'"):
             await tf.get_traffic_flows("default", cloud_settings)
+
+    @pytest.mark.asyncio
+    async def test_legacy_mode_allowed(self, mock_settings: MagicMock) -> None:
+        """Legacy self-hosted controllers serve the v2 flow endpoint too."""
+        from src.config import APIType
+
+        legacy = MagicMock(spec=Settings)
+        legacy.api_type = APIType.LEGACY
+        legacy.api_key = "test-api-key"
+        legacy.log_level = "INFO"
+        legacy.get_v2_api_path = MagicMock(side_effect=lambda site_id: f"/v2/api/site/{site_id}")
+        with patch("src.tools.traffic_flows.UniFiClient") as MockClient:
+            MockClient.return_value = _mock_client([])
+            result = await tf.get_traffic_flows("default", legacy)
+
+        assert result == []
 
     @pytest.mark.asyncio
     async def test_get_flow_trends_always_raises(self, mock_settings: MagicMock) -> None:

@@ -22,9 +22,9 @@ logger = get_logger(__name__)
 
 
 def _ensure_local_api(settings: Settings) -> None:
-    if settings.api_type != APIType.LOCAL:
+    if settings.api_type not in (APIType.LOCAL, APIType.LEGACY):
         raise NotImplementedError(
-            "DHCP reservation tools require UNIFI_API_TYPE='local'. "
+            "DHCP reservation tools require UNIFI_API_TYPE='local' or 'legacy'. "
             "The cloud/integration API does not expose the /rest/user endpoint."
         )
 

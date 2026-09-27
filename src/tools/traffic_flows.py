@@ -62,13 +62,13 @@ logger = get_logger(__name__)
 
 
 def _ensure_local_api(settings: Settings) -> None:
-    """Flow endpoints are only reachable via the local gateway proxy."""
-    if settings.api_type != APIType.LOCAL:
+    """Flow endpoints are reachable on local gateways and self-hosted controllers."""
+    if settings.api_type not in (APIType.LOCAL, APIType.LEGACY):
         raise NotImplementedError(
-            "Traffic flow tools require UNIFI_API_TYPE='local'. The UniFi "
-            "Integration API does not expose flow data; it is only available "
-            "through the local gateway's v2 endpoint at "
-            "/proxy/network/v2/api/site/{site}/traffic-flows."
+            "Traffic flow tools require UNIFI_API_TYPE='local' or 'legacy'. The UniFi "
+            "Integration (cloud) API does not expose flow data; it is only available "
+            "through the v2 endpoint /v2/api/site/{site}/traffic-flows (self-hosted) "
+            "or /proxy/network/v2/api/site/{site}/traffic-flows (UniFi OS gateway)."
         )
 
 

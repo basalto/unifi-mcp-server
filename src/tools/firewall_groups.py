@@ -33,13 +33,12 @@ _VALID_GROUP_TYPES = ("port-group", "address-group", "ipv6-address-group")
 
 
 def _ensure_local_api(settings: Settings) -> None:
-    """Firewall group endpoints live on the local V1 internal API only."""
-    if settings.api_type != APIType.LOCAL:
+    """Firewall group endpoints live on the V1 internal API (gateway or self-hosted)."""
+    if settings.api_type not in (APIType.LOCAL, APIType.LEGACY):
         raise NotImplementedError(
-            "Firewall group tools require UNIFI_API_TYPE='local'. The UniFi "
+            "Firewall group tools require UNIFI_API_TYPE='local' or 'legacy'. The UniFi "
             "cloud/integration API does not expose firewall groups; they are "
-            "only reachable via the local gateway's legacy "
-            "/rest/firewallgroup endpoint."
+            "only reachable via the /rest/firewallgroup endpoint."
         )
 
 

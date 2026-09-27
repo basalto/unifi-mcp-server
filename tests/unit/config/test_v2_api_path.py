@@ -36,6 +36,15 @@ class TestGetV2ApiPath:
         monkeypatch.delenv("UNIFI_LOCAL_HOST", raising=False)
         return Settings()
 
+    @pytest.fixture
+    def legacy_settings(self, monkeypatch: pytest.MonkeyPatch) -> Settings:
+        """Create settings for legacy self-hosted controller access."""
+        monkeypatch.setenv("UNIFI_API_TYPE", "legacy")
+        monkeypatch.setenv("UNIFI_LEGACY_HOST", "192.168.1.101")
+        monkeypatch.setenv("UNIFI_LEGACY_USERNAME", "admin")
+        monkeypatch.setenv("UNIFI_LEGACY_PASSWORD", "secret")
+        return Settings()
+
     def test_local_api_returns_correct_path(self, local_settings: Settings) -> None:
         """Test that local API type returns the correct v2 path."""
         result = local_settings.get_v2_api_path("default")
@@ -70,6 +79,18 @@ class TestGetV2ApiPath:
 
         assert "v2 API" in str(exc_info.value)
         assert "local" in str(exc_info.value).lower()
+
+    def test_legacy_api_returns_correct_path(self, legacy_settings: Settings) -> None:
+        """Test that legacy API type returns the self-hosted v2 path."""
+        result = legacy_settings.get_v2_api_path("default")
+
+        assert result == "/v2/api/site/default"
+
+    def test_legacy_api_with_custom_site_id(self, legacy_settings: Settings) -> None:
+        """Test legacy path generation with custom site_id."""
+        result = legacy_settings.get_v2_api_path("my-custom-site")
+
+        assert result == "/v2/api/site/my-custom-site"
 
     def test_empty_site_id(self, local_settings: Settings) -> None:
         """Test path generation with empty site_id still works (no validation)."""

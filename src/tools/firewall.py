@@ -45,9 +45,9 @@ async def list_firewall_rules(
             response if isinstance(response, list) else response.get("data", [])
         )
 
-        # In local mode, legacy rest/firewallrule may be empty while custom
+        # In local or legacy mode, legacy rest/firewallrule may be empty while custom
         # policies live on the v2 endpoint. Fall back to v2 when empty.
-        if not rules_data and settings.api_type == APIType.LOCAL:
+        if not rules_data and settings.api_type in (APIType.LOCAL, APIType.LEGACY):
             try:
                 v2_endpoint = f"{settings.get_v2_api_path(site_id)}/firewall-policies"
                 v2_response = await client.get(v2_endpoint)

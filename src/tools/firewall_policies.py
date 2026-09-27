@@ -226,11 +226,11 @@ def _extract_zone_list(response: Any) -> list[dict[str, Any]]:
 
 
 def _ensure_local_api(settings: Settings) -> None:
-    """Ensure the UniFi controller is accessed via the local API for v2 endpoints."""
-    if settings.api_type != APIType.LOCAL:
+    """Ensure the controller is accessed directly (local gateway or self-hosted)."""
+    if settings.api_type not in (APIType.LOCAL, APIType.LEGACY):
         raise NotImplementedError(
-            "Firewall policies (v2 API) are only available when UNIFI_API_TYPE='local'. "
-            "Please configure a local UniFi gateway connection to use these tools."
+            "Firewall policies (v2 API) require UNIFI_API_TYPE='local' or 'legacy'. "
+            "The cloud API does not expose the v2 firewall-policies endpoints."
         )
 
 

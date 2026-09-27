@@ -356,30 +356,37 @@ class Settings(BaseSettings):
             return f"/proxy/network/api/s/{site_id}/{endpoint}"
 
     def get_v2_api_path(self, site_id: str) -> str:
-        """Get the v2 API endpoint path for local gateway access.
+        """Get the v2 API endpoint path for local gateway or legacy controller access.
 
-        The v2 API is only available on local gateways and provides access to
-        features like firewall policies that are not available via the cloud API.
+        The v2 API is available on local gateways and on self-hosted (legacy)
+        controllers. The two serve the same v2 surface at different base paths:
+
+        * Local (UniFi OS gateway proxy): ``/proxy/network/v2/api/site/{site_id}``
+        * Legacy (self-hosted Network Server): ``/v2/api/site/{site_id}``
 
         Args:
             site_id: The site identifier
 
         Returns:
-            Complete endpoint path: /proxy/network/v2/api/site/{site_id}
+            Complete endpoint path
 
         Raises:
-            NotImplementedError: If api_type is not LOCAL (v2 API only works locally)
+            NotImplementedError: If api_type is a cloud API (v2 API only works
+                against a directly-reachable controller or gateway)
 
         Example:
             >>> settings.get_v2_api_path("default")
-            # Local: "/proxy/network/v2/api/site/default"
+            # Local:  "/proxy/network/v2/api/site/default"
+            # Legacy: "/v2/api/site/default"
         """
-        if self.api_type != APIType.LOCAL:
-            raise NotImplementedError(
-                "v2 API is only available with local gateway access. "
-                "Set UNIFI_API_TYPE=local and configure UNIFI_LOCAL_HOST."
-            )
-        return f"/proxy/network/v2/api/site/{site_id}"
+        if self.api_type == APIType.LOCAL:
+            return f"/proxy/network/v2/api/site/{site_id}"
+        if self.api_type == APIType.LEGACY:
+            return f"/v2/api/site/{site_id}"
+        raise NotImplementedError(
+            "v2 API is only available with direct controller access (local gateway "
+            "or legacy self-hosted controller). Cloud API types do not expose it."
+        )
 
     def get_headers(self) -> dict[str, str]:
         """Get HTTP headers for API requests.
