@@ -5,11 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import src.tools.ace_stat as ace_stat
-from src.tools.ace_stat import (
-    get_ace_stat_health,
-    get_dpi_analytics,
-    get_wan_health_history,
-)
+from src.tools.ace_stat import get_ace_stat_health, get_dpi_analytics, get_wan_health_history
 
 
 @pytest.fixture
