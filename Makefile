@@ -1,20 +1,13 @@
-SERVER     ?= 192.168.1.19
-USER       ?= rjdinis
-DEPLOY_DIR ?= /home/$(USER)/docker/unifi-mcp
-SERVICE    ?= unifi-mcp
-SSH        := ssh -o StrictHostKeyChecking=no $(USER)@$(SERVER)
-SCP        := scp -o StrictHostKeyChecking=no
+SHELL      := /bin/bash
+DEPLOY_DIR := $(shell pwd)
+STACK      := unifi-mcp
+SERVICE    := unifi-mcp
 
-.PHONY: deploy install-service uninstall-service start stop restart status logs upgrade help
+.PHONY: install-service uninstall-service start stop restart status logs upgrade help
 
-## deploy        Copy .env and docker-compose.yml to server
-deploy:
-	$(SSH) "mkdir -p $(DEPLOY_DIR)"
-	$(SCP) .env docker-compose.yml $(USER)@$(SERVER):$(DEPLOY_DIR)/
-
-## install-service  Deploy files + create and enable systemd service
-install-service: deploy
-	$(SSH) "printf '%s\n' \
+## install-service  Create and enable systemd service (starts on boot)
+install-service:
+	printf '%s\n' \
 		'[Unit]' \
 		'Description=UniFi MCP Server' \
 		'Requires=docker.service' \
@@ -25,51 +18,53 @@ install-service: deploy
 		'Type=oneshot' \
 		'RemainAfterExit=yes' \
 		'WorkingDirectory=$(DEPLOY_DIR)' \
-		'ExecStart=/usr/bin/docker compose up -d --pull always' \
-		'ExecStop=/usr/bin/docker compose down' \
+		'ExecStart=/bin/bash -c "set -a && source $(DEPLOY_DIR)/.env && set +a && /usr/bin/docker stack deploy -c $(DEPLOY_DIR)/docker-compose.yml --with-registry-auth $(STACK)"' \
+		'ExecStop=/usr/bin/docker stack rm $(STACK)' \
 		'TimeoutStartSec=120' \
 		'' \
 		'[Install]' \
 		'WantedBy=multi-user.target' \
-		> /tmp/$(SERVICE).service \
-		&& sudo mv /tmp/$(SERVICE).service /etc/systemd/system/$(SERVICE).service \
-		&& sudo systemctl daemon-reload \
-		&& sudo systemctl enable $(SERVICE) \
-		&& sudo systemctl start $(SERVICE) \
-		&& echo 'Service $(SERVICE) installed and started'"
+		| sudo tee /etc/systemd/system/$(SERVICE).service > /dev/null
+	sudo systemctl daemon-reload
+	sudo systemctl enable $(SERVICE)
+	@echo "Service $(SERVICE) installed — run 'make start' to start it"
 
 ## uninstall-service  Stop, disable and remove systemd service
 uninstall-service:
-	$(SSH) "sudo systemctl stop $(SERVICE) 2>/dev/null; \
-		sudo systemctl disable $(SERVICE) 2>/dev/null; \
-		sudo rm -f /etc/systemd/system/$(SERVICE).service; \
-		sudo systemctl daemon-reload; \
-		echo 'Service $(SERVICE) removed'"
+	sudo systemctl stop $(SERVICE) 2>/dev/null || true
+	sudo systemctl disable $(SERVICE) 2>/dev/null || true
+	sudo rm -f /etc/systemd/system/$(SERVICE).service
+	sudo systemctl daemon-reload
+	@echo "Service $(SERVICE) removed"
 
-## start         Start the service
+## start    Deploy the stack
 start:
-	$(SSH) "sudo systemctl start $(SERVICE)"
+	set -a && source .env && set +a && \
+	docker stack deploy -c docker-compose.yml --with-registry-auth $(STACK)
 
-## stop          Stop the service
+## stop     Remove the stack
 stop:
-	$(SSH) "sudo systemctl stop $(SERVICE)"
+	docker stack rm $(STACK)
 
-## restart       Restart the service
+## restart  Redeploy the stack
 restart:
-	$(SSH) "sudo systemctl restart $(SERVICE)"
+	set -a && source .env && set +a && \
+	docker stack deploy -c docker-compose.yml --with-registry-auth $(STACK)
 
-## status        Show service status
+## status   Show stack service status
 status:
-	$(SSH) "systemctl status $(SERVICE) --no-pager -l"
+	docker stack ps $(STACK)
 
-## logs          Tail container logs
+## logs     Tail container logs
 logs:
-	$(SSH) "cd $(DEPLOY_DIR) && docker compose logs -f --tail=100"
+	docker service logs -f --tail=100 $(STACK)_unifi-mcp
 
-## upgrade       Pull latest image and restart service
+## upgrade  Pull latest image and redeploy
 upgrade:
-	$(SSH) "cd $(DEPLOY_DIR) && docker compose pull && sudo systemctl restart $(SERVICE)"
+	docker pull ghcr.io/basalto/unifi-mcp-server:latest
+	set -a && source .env && set +a && \
+	docker stack deploy -c docker-compose.yml --with-registry-auth $(STACK)
 
-## help          Show available targets
+## help     Show available targets
 help:
 	@grep -E '^## ' Makefile | sed 's/^## //'
