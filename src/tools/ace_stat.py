@@ -82,6 +82,38 @@ async def get_dpi_analytics(
     return await _get(settings, "/dpi", range=time_range, hours=hours)
 
 
+async def get_client_dpi_analytics(
+    settings: Settings,
+    client_mac: str,
+    time_range: str = "hourly",
+    hours: int | None = None,
+) -> dict[str, Any]:
+    """Get per-client DPI application/category analytics for one device.
+
+    Aggregates one client's byte counters from the controller's ace_stat
+    database. The legacy ``stat/stadpi/{mac}`` endpoint is unpopulated, so this
+    reads the per-client ``o:"user"`` docs via the sidecar's ``/dpi?mac=``
+    route. Unlike the site-wide aggregate it also returns per-app
+    ``activity_seconds`` (there are no country counters at client level).
+
+    Args:
+        settings: Application settings
+        client_mac: Client MAC address (lowercase, colon-separated), e.g.
+            'fa:15:86:4c:26:1f'.
+        time_range: Aggregation bucket granularity: '5minutes', 'hourly',
+            'daily', or 'monthly'. Default 'hourly'.
+        hours: Optional lookback window in hours (e.g. 24 for last day).
+            Omit for the full retention of the selected granularity.
+
+    Returns:
+        Dict with client_mac, total/unidentified bytes, top applications
+        (named, with activity_seconds) and category roll-ups (named).
+    """
+    if time_range not in _RANGES:
+        raise ValueError(f"time_range must be one of {_RANGES}, got '{time_range}'")
+    return await _get(settings, "/dpi", range=time_range, hours=hours, mac=client_mac)
+
+
 async def get_wan_health_history(
     settings: Settings,
     time_range: str = "hourly",

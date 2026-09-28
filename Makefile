@@ -60,7 +60,7 @@ restart:
 
 ## status        Show service status
 status:
-	$(SSH) "sudo systemctl status $(SERVICE) --no-pager -l"
+	$(SSH) "systemctl status $(SERVICE) --no-pager -l"
 
 ## logs          Tail container logs
 logs:
