@@ -1,8 +1,7 @@
 """Unit tests for src/auth.py StaticTokenAuth."""
 
 import pytest
-
-from src.auth import StaticTokenAuth
+from basalto_mcp import StaticTokenAuth
 
 
 class TestStaticTokenAuthInit:
@@ -22,7 +21,7 @@ class TestStaticTokenAuthVerify:
 
     @pytest.mark.asyncio
     async def test_valid_token_returns_access_token(self):
-        auth = StaticTokenAuth("secret-token")
+        auth = StaticTokenAuth("secret-token", client_id="unifi-mcp-server")
         result = await auth.verify_token("secret-token")
         assert result is not None
         assert result.token == "secret-token"

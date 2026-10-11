@@ -3,11 +3,11 @@
 import importlib.metadata
 import json
 import os
-from typing import Any, Literal, cast
+from typing import Any
 
+from basalto_mcp import make_auth, serve
 from fastmcp import FastMCP
 
-from .auth import StaticTokenAuth
 from .config import APIType, Settings
 from .resources import ClientsResource, DevicesResource, NetworksResource, SitesResource
 from .resources import site_manager as site_manager_resource
@@ -57,7 +57,7 @@ from .utils import get_logger
 settings = Settings()
 logger = get_logger(__name__, settings.log_level)
 
-_auth_provider = StaticTokenAuth(settings.mcp_auth_token) if settings.mcp_auth_token else None
+_auth_provider = make_auth(settings, client_id="unifi-mcp-server")
 if _auth_provider is not None:
     logger.info("MCP bearer-token authentication enabled")
 else:
@@ -337,34 +337,12 @@ async def get_site_manager_internet_health_resource() -> str:
 
 def main() -> None:
     """Main entry point for the MCP server."""
-    import os
-
-    import uvicorn
-    from starlette.middleware.cors import CORSMiddleware
-
-    transport = os.getenv("FASTMCP_TRANSPORT", "stdio")
-    host = os.getenv("FASTMCP_HOST", "0.0.0.0")
-    port = int(os.getenv("FASTMCP_PORT", "3000"))
-
     logger.info("Starting UniFi MCP Server...")
     logger.info(f"API Type: {settings.api_type.value}")
     logger.info(f"Base URL: {settings.base_url}")
-    logger.info(f"Transport: {transport}")
     logger.info("Server ready to handle requests")
 
-    if transport in ("streamable-http", "http", "sse"):
-        http_transport = cast(Literal["http", "streamable-http", "sse"], transport)
-        starlette_app = mcp.http_app(transport=http_transport)
-        cors_app = CORSMiddleware(
-            app=starlette_app,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        uvicorn.run(cors_app, host=host, port=port, lifespan="on")
-    else:
-        run_transport = cast(Literal["stdio", "http", "sse", "streamable-http"], transport)
-        mcp.run(transport=run_transport)
+    serve(mcp, default_port=3000)
 
 
 if __name__ == "__main__":

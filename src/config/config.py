@@ -3,8 +3,8 @@
 from enum import Enum
 from typing import Literal
 
+from basalto_mcp import MCPBaseSettings
 from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class APIType(str, Enum):
@@ -19,15 +19,12 @@ class APIType(str, Enum):
     CLOUD = "cloud-ea"
 
 
-class Settings(BaseSettings):
-    """Application settings loaded from environment variables and .env file."""
+class Settings(MCPBaseSettings):
+    """Application settings loaded from environment variables and .env file.
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
+    Inherits ``.env`` loading, case-insensitivity, and the optional
+    ``mcp_auth_token`` (``MCP_AUTH_TOKEN``) from :class:`MCPBaseSettings`.
+    """
 
     # API Configuration
     api_key: str | None = Field(
@@ -104,17 +101,6 @@ class Settings(BaseSettings):
         default="default",
         description="Default site ID to use",
         validation_alias="UNIFI_DEFAULT_SITE",
-    )
-
-    # MCP Server Authentication
-    mcp_auth_token: str | None = Field(
-        default=None,
-        description=(
-            "Optional bearer token required to call the MCP server. "
-            "When set, clients must send 'Authorization: Bearer <token>'. "
-            "When unset, no authentication is enforced."
-        ),
-        validation_alias="MCP_AUTH_TOKEN",
     )
 
     # Site Manager API Configuration
