@@ -317,3 +317,74 @@ async def get_flow_callers(
         domain=domain,
         hours=hours,
     )
+
+
+async def get_flow_history(
+    settings: Settings,
+    dst_ip: str | None = None,
+    domain: str | None = None,
+    src_mac: str | None = None,
+    days: int = 7,
+) -> list[dict[str, Any]]:
+    """Get hourly traffic-flow history (up to 31 days) from the dedicated store.
+
+    The controller keeps raw flows only ~1 hour. An on-controller aggregator
+    (ace-flow-agg, a 30-min systemd timer) collapses them into hourly
+    per-(source, destination, domain) buckets in a dedicated SQLite DB with 31
+    days retention, which this tool queries. Use it for "has this client been
+    calling home to X consistently over weeks?" — questions the live 1h window
+    cannot answer.
+
+    Args:
+        settings: Application settings
+        dst_ip: Optional destination IP (exact).
+        domain: Optional destination hostname substring.
+        src_mac: Optional source client MAC (exact).
+        days: Lookback window in days (1-31, default 7).
+
+    Returns:
+        List of hourly buckets (hour epoch-ms, src_mac, src_ip, dst_ip,
+        dst_domain, count, bytes, first_seen, last_seen), oldest first.
+    """
+    return await _get(
+        settings,
+        "/flows/history",
+        dst_ip=dst_ip,
+        domain=domain,
+        src_mac=src_mac,
+        days=days,
+    )
+
+
+async def get_flow_history_callers(
+    settings: Settings,
+    dst_ip: str | None = None,
+    domain: str | None = None,
+    days: int = 7,
+) -> list[dict[str, Any]]:
+    """Which clients contacted a destination over history, and how consistently.
+
+    Aggregates the flow-history store by source client, returning total flows,
+    bytes, first/last seen, distinct hour-bucket count, and a presence ratio
+    (fraction of the window's hours the client appeared in). A high presence
+    ratio with regular traffic = a persistent calling-home / beacon pattern.
+
+    Args:
+        settings: Application settings
+        dst_ip: Optional destination IP (exact). E.g. "who is phoning
+            149.154.166.110?".
+        domain: Optional destination hostname substring.
+        days: Lookback window in days (1-31, default 7).
+
+    Returns:
+        List of caller dicts sorted by total_flows desc: {src_mac, src_ip,
+        hour_buckets, total_flows, bytes, first_seen, last_seen,
+        presence_ratio}.
+    """
+    return await _get(
+        settings,
+        "/flows/history/callers",
+        dst_ip=dst_ip,
+        domain=domain,
+        days=days,
+    )

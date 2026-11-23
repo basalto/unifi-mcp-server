@@ -11,6 +11,8 @@ from src.tools.ace_stat import (
     get_alerts,
     get_dpi_analytics,
     get_flow_callers,
+    get_flow_history,
+    get_flow_history_callers,
     get_flow_records,
     get_wan_health_history,
 )
@@ -170,3 +172,29 @@ async def test_get_flow_callers_passes_filters(AsyncClientMock, mock_settings):
     _, kwargs = client.get.call_args
     assert kwargs["params"] == {"dst_ip": "149.154.166.110", "hours": 1}
     assert result[0]["count"] == 55
+
+
+# ---------------------------------------------------------------------------
+# get_flow_history / get_flow_history_callers
+# ---------------------------------------------------------------------------
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_flow_history_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"hour": 1795424400000, "count": 40}])
+    AsyncClientMock.return_value = client
+    await get_flow_history(mock_settings, dst_ip="149.154.166.110", days=30)
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {"dst_ip": "149.154.166.110", "days": 30}
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_flow_history_callers_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"src_mac": "bc:24:11:e1:58:1e", "presence_ratio": 0.9}])
+    AsyncClientMock.return_value = client
+    result = await get_flow_history_callers(mock_settings, dst_ip="149.154.166.110")
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {"dst_ip": "149.154.166.110", "days": 7}
+    assert result[0]["presence_ratio"] == 0.9
