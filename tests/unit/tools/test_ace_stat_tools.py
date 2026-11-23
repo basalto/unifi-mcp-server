@@ -13,6 +13,7 @@ from src.tools.ace_stat import (
     get_flow_callers,
     get_flow_history,
     get_flow_history_callers,
+    get_flow_raw_history,
     get_flow_records,
     get_wan_health_history,
 )
@@ -198,3 +199,14 @@ async def test_get_flow_history_callers_passes_filters(AsyncClientMock, mock_set
     _, kwargs = client.get.call_args
     assert kwargs["params"] == {"dst_ip": "149.154.166.110", "days": 7}
     assert result[0]["presence_ratio"] == 0.9
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_flow_raw_history_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"time": 1795431840470, "dst_ip": "109.48.13.203"}])
+    AsyncClientMock.return_value = client
+    result = await get_flow_raw_history(mock_settings, dst_ip="109.48.13.203", limit=10)
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {"dst_ip": "109.48.13.203", "days": 7, "limit": 10}
+    assert result[0]["dst_ip"] == "109.48.13.203"

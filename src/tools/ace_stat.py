@@ -388,3 +388,41 @@ async def get_flow_history_callers(
         domain=domain,
         days=days,
     )
+
+
+async def get_flow_raw_history(
+    settings: Settings,
+    dst_ip: str | None = None,
+    domain: str | None = None,
+    src_mac: str | None = None,
+    days: int = 7,
+    limit: int = 500,
+) -> list[dict[str, Any]]:
+    """Get individual raw flow records (up to 31 days) from the dedicated store.
+
+    Unlike the hourly aggregate, these keep the exact per-flow timestamp,
+    source/destination ports, protocol, action, and bytes — the forensic view
+    for "what exactly did this client send at <time>". Same 31-day retention
+    store as get_flow_history, written by the same ace-flow-agg aggregator.
+
+    Args:
+        settings: Application settings
+        dst_ip: Optional destination IP (exact).
+        domain: Optional destination hostname substring.
+        src_mac: Optional source client MAC (exact).
+        days: Lookback window in days (1-31, default 7).
+        limit: Maximum records (1-2000, default 500, most recent first).
+
+    Returns:
+        List of raw flow dicts: {time (epoch-ms), src_mac, src_ip, src_port,
+        dst_ip, dst_port, dst_domain, protocol, action, bytes}.
+    """
+    return await _get(
+        settings,
+        "/flows/raw",
+        dst_ip=dst_ip,
+        domain=domain,
+        src_mac=src_mac,
+        days=days,
+        limit=limit,
+    )
