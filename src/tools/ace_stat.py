@@ -275,8 +275,13 @@ async def get_flow_records(
         dst{ip,port,domains}, bytes}.
     """
     return await _get(
-        settings, "/flows", dst_ip=dst_ip, domain=domain, src_mac=src_mac,
-        hours=hours, limit=limit,
+        settings,
+        "/flows",
+        dst_ip=dst_ip,
+        domain=domain,
+        src_mac=src_mac,
+        hours=hours,
+        limit=limit,
     )
 
 
@@ -306,5 +311,9 @@ async def get_flow_callers(
         sample_times (last 20)}.
     """
     return await _get(
-        settings, "/flows/callers", dst_ip=dst_ip, domain=domain, hours=hours,
+        settings,
+        "/flows/callers",
+        dst_ip=dst_ip,
+        domain=domain,
+        hours=hours,
     )

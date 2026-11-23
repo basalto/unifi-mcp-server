@@ -149,12 +149,15 @@ async def test_get_admin_activity_log_passes_filters(AsyncClientMock, mock_setti
 @patch("src.tools.ace_stat.httpx.AsyncClient")
 @pytest.mark.asyncio
 async def test_get_flow_records_passes_filters(AsyncClientMock, mock_settings):
-    client = _mock_httpx([{"time": "2026-11-23T09:00:00Z", "src": {"mac": "aa:bb"} }])
+    client = _mock_httpx([{"time": "2026-11-23T09:00:00Z", "src": {"mac": "aa:bb"}}])
     AsyncClientMock.return_value = client
     await get_flow_records(mock_settings, dst_ip="149.154.166.110", domain="grafana")
     _, kwargs = client.get.call_args
     assert kwargs["params"] == {
-        "dst_ip": "149.154.166.110", "domain": "grafana", "hours": 1, "limit": 100,
+        "dst_ip": "149.154.166.110",
+        "domain": "grafana",
+        "hours": 1,
+        "limit": 100,
     }
 
 
