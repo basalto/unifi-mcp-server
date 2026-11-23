@@ -398,19 +398,20 @@ async def get_flow_raw_history(
     days: int = 7,
     limit: int = 500,
 ) -> list[dict[str, Any]]:
-    """Get individual raw flow records (up to 31 days) from the dedicated store.
+    """Get individual raw flow records (up to 7 days) from the dedicated store.
 
     Unlike the hourly aggregate, these keep the exact per-flow timestamp,
     source/destination ports, protocol, action, and bytes — the forensic view
-    for "what exactly did this client send at <time>". Same 31-day retention
-    store as get_flow_history, written by the same ace-flow-agg aggregator.
+    for "what exactly did this client send at <time>". Raw records are kept 7
+    days (the hourly aggregate is kept 31); written by the same ace-flow-agg
+    aggregator.
 
     Args:
         settings: Application settings
         dst_ip: Optional destination IP (exact).
         domain: Optional destination hostname substring.
         src_mac: Optional source client MAC (exact).
-        days: Lookback window in days (1-31, default 7).
+        days: Lookback window in days (1-7, default 7).
         limit: Maximum records (1-2000, default 500, most recent first).
 
     Returns:
