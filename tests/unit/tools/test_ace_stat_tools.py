@@ -10,6 +10,8 @@ from src.tools.ace_stat import (
     get_admin_activity_log,
     get_alerts,
     get_dpi_analytics,
+    get_flow_callers,
+    get_flow_records,
     get_wan_health_history,
 )
 
@@ -137,3 +139,31 @@ async def test_get_admin_activity_log_passes_filters(AsyncClientMock, mock_setti
     _, kwargs = client.get.call_args
     assert kwargs["params"] == {"key": "ACCESSED", "limit": 5}
     assert result[0]["key"] == "ACCESSED_NETWORK_WEB"
+
+
+# ---------------------------------------------------------------------------
+# get_flow_records / get_flow_callers
+# ---------------------------------------------------------------------------
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_flow_records_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"time": "2026-11-23T09:00:00Z", "src": {"mac": "aa:bb"} }])
+    AsyncClientMock.return_value = client
+    await get_flow_records(mock_settings, dst_ip="149.154.166.110", domain="grafana")
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {
+        "dst_ip": "149.154.166.110", "domain": "grafana", "hours": 1, "limit": 100,
+    }
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_flow_callers_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"src_mac": "bc:24:11:e1:58:1e", "count": 55}])
+    AsyncClientMock.return_value = client
+    result = await get_flow_callers(mock_settings, dst_ip="149.154.166.110")
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {"dst_ip": "149.154.166.110", "hours": 1}
+    assert result[0]["count"] == 55

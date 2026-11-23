@@ -245,3 +245,66 @@ async def get_admin_activity_log(
         List of audit dicts: {time, key, admin, admin_id, ip, site_id}.
     """
     return await _get(settings, "/admin_log", key=key, hours=hours, limit=limit)
+
+
+async def get_flow_records(
+    settings: Settings,
+    dst_ip: str | None = None,
+    domain: str | None = None,
+    src_mac: str | None = None,
+    hours: int | None = 1,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    """Get raw traffic-flow records from the controller's ~1h rolling window.
+
+    Reads ace_audit.traffic_flow — the same per-flow records (with resolved
+    destination hostnames) the UI's client "Flows" page shows. Retention is
+    ~1 hour, so this is for "what just happened", not long-term history.
+
+    Args:
+        settings: Application settings
+        dst_ip: Optional destination IP to filter on (exact match).
+        domain: Optional destination hostname substring (case-insensitive
+            regex on the resolved domains array).
+        src_mac: Optional source client MAC (exact match).
+        hours: Lookback window in hours (default 1; retention caps it ~1h).
+        limit: Maximum records (1-500, default 100, most recent first).
+
+    Returns:
+        List of flow dicts: {time, protocol, action, src{ip,mac,port},
+        dst{ip,port,domains}, bytes}.
+    """
+    return await _get(
+        settings, "/flows", dst_ip=dst_ip, domain=domain, src_mac=src_mac,
+        hours=hours, limit=limit,
+    )
+
+
+async def get_flow_callers(
+    settings: Settings,
+    dst_ip: str | None = None,
+    domain: str | None = None,
+    hours: int | None = 1,
+) -> list[dict[str, Any]]:
+    """Find which clients are talking to an IP/domain and at what cadence.
+
+    Aggregates the ~1h flow window by SOURCE client, returning count, bytes,
+    first/last seen, and inter-request gap stats (min/median/max). This is the
+    calling-home / periodic-beacon detector: a client phoning a destination
+    every N seconds shows up as a high count with a tight median gap.
+
+    Args:
+        settings: Application settings
+        dst_ip: Optional destination IP (exact). Use this to ask
+            "who is calling home to 149.154.166.110?".
+        domain: Optional destination hostname substring (e.g. 'grafana.github.io').
+        hours: Lookback window in hours (default 1; retention caps it ~1h).
+
+    Returns:
+        List of caller dicts sorted by count desc: {src_mac, src_ip, count,
+        bytes, first_seen, last_seen, span_seconds, min/median/max_gap_seconds,
+        sample_times (last 20)}.
+    """
+    return await _get(
+        settings, "/flows/callers", dst_ip=dst_ip, domain=domain, hours=hours,
+    )
