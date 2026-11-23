@@ -5,7 +5,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import src.tools.ace_stat as ace_stat
-from src.tools.ace_stat import get_ace_stat_health, get_dpi_analytics, get_wan_health_history
+from src.tools.ace_stat import (
+    get_ace_stat_health,
+    get_admin_activity_log,
+    get_alerts,
+    get_dpi_analytics,
+    get_wan_health_history,
+)
 
 
 @pytest.fixture
@@ -104,3 +110,30 @@ async def test_get_wan_health_history(AsyncClientMock, mock_settings):
     AsyncClientMock.return_value = client
     result = await get_wan_health_history(mock_settings, time_range="hourly", hours=24)
     assert result[0]["isp_name"] == "Nos"
+
+
+# ---------------------------------------------------------------------------
+# get_alerts / get_admin_activity_log
+# ---------------------------------------------------------------------------
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_alerts_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"time": "2026-11-23T09:00:00Z", "key": "THREAT_BLOCKED_V3"}])
+    AsyncClientMock.return_value = client
+    result = await get_alerts(mock_settings, key="THREAT", hours=24, limit=10)
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {"key": "THREAT", "hours": 24, "limit": 10}
+    assert result[0]["key"] == "THREAT_BLOCKED_V3"
+
+
+@patch("src.tools.ace_stat.httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_get_admin_activity_log_passes_filters(AsyncClientMock, mock_settings):
+    client = _mock_httpx([{"time": "2026-11-23T09:00:00Z", "key": "ACCESSED_NETWORK_WEB"}])
+    AsyncClientMock.return_value = client
+    result = await get_admin_activity_log(mock_settings, key="ACCESSED", limit=5)
+    _, kwargs = client.get.call_args
+    assert kwargs["params"] == {"key": "ACCESSED", "limit": 5}
+    assert result[0]["key"] == "ACCESSED_NETWORK_WEB"

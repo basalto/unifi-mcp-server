@@ -191,3 +191,57 @@ async def get_wifi_connection_events(
         List of connection events (most recent first).
     """
     return await _get(settings, "/connection_events", limit=limit)
+
+
+async def get_alerts(
+    settings: Settings,
+    key: str | None = None,
+    hours: int | None = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    """Get controller alert/event feed (security + health events, ~2 months).
+
+    Reads the ace.alert collection: threat blocks, WAN outages, IP conflicts,
+    RADIUS issues, client/device connect-disconnect, admin config changes,
+    firmware updates, low uplink speed, and more. This is the standing event
+    stream the legacy API does not expose.
+
+    Args:
+        settings: Application settings
+        key: Optional substring filter on the event key (e.g. 'THREAT_BLOCKED',
+            'WAN_FAILED', 'IP_CONFLICT'). Case-insensitive regex match.
+        hours: Optional lookback window in hours (e.g. 24 for last day).
+            Omit for the full ~2-month retention.
+        limit: Maximum number of events to return (1-500, default 50,
+            most recent first).
+
+    Returns:
+        List of alert dicts: {time, key, status, site_id, summary} where
+        summary is the flattened parameter values (client/device/network
+        names, IPs, counters).
+    """
+    return await _get(settings, "/alerts", key=key, hours=hours, limit=limit)
+
+
+async def get_admin_activity_log(
+    settings: Settings,
+    key: str | None = None,
+    hours: int | None = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    """Get the admin audit trail (console access + configuration changes).
+
+    Reads the ace.admin_activity_log collection: who logged into the console,
+    from which IP, and what settings/entities they changed.
+
+    Args:
+        settings: Application settings
+        key: Optional substring filter on the action key (e.g.
+            'ACCESSED_NETWORK_WEB', 'MADE_CHANGES'). Case-insensitive regex.
+        hours: Optional lookback window in hours.
+        limit: Maximum number of events to return (1-500, default 50).
+
+    Returns:
+        List of audit dicts: {time, key, admin, admin_id, ip, site_id}.
+    """
+    return await _get(settings, "/admin_log", key=key, hours=hours, limit=limit)
